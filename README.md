@@ -2,6 +2,7 @@
 
 ## Main Features
 - Automatically requests Administrator privileges.
+- Fast, single-key UI navigation (no `Enter` required).
 - Toggle Windows Test Mode (testsigning).
 - Toggle BitLocker on selected drives.
 - Toggle Volume Write Protection (Read-Only) using diskpart (prevents locking system volumes).
