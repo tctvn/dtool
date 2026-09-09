@@ -9,6 +9,8 @@ if (-not ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdenti
     exit
 }
 
+$Global:dtoolVersion = "v1.1.0"
+
 function Read-MenuChoice {
     param([string]$Prompt = "Select an option")
     Write-Host "$($Prompt): " -NoNewline -ForegroundColor Green
@@ -299,7 +301,7 @@ function Show-Menu {
     while ($true) {
         Clear-Host
         Write-Host "`n========================" -ForegroundColor Cyan
-        Write-Host "      dtool Menu        " -ForegroundColor Cyan
+        Write-Host "   dtool Menu $Global:dtoolVersion   " -ForegroundColor Cyan
         Write-Host "========================" -ForegroundColor Cyan
         Write-Host "1. Toggle Test Mode"
         Write-Host "2. Toggle BitLocker (Select Drive)"
