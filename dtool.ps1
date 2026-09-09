@@ -230,17 +230,22 @@ function Force-Windows11Upgrade {
     Write-Host "`n--- Force/Restore Windows 11 Upgrade Prompt ---" -ForegroundColor Cyan
     Write-Host "This will remove any policies that might be blocking the Windows 11 upgrade..."
     
-    $regPath = "HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate"
+    $regPaths = @(
+        "HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate",
+        "HKLM:\SOFTWARE\Microsoft\WindowsUpdate\UX\Settings"
+    )
+    $keysToRemove = @("TargetReleaseVersion", "TargetReleaseVersionInfo", "ProductVersion", "DisableOSUpgrade", "HideMCTLink", "SvAutoOptInBlockingPeriod")
     $changed = $false
     
-    if (Test-Path $regPath) {
-        $keysToRemove = @("TargetReleaseVersion", "TargetReleaseVersionInfo", "ProductVersion", "DisableOSUpgrade")
-        foreach ($key in $keysToRemove) {
-            $val = Get-ItemProperty -Path $regPath -Name $key -ErrorAction SilentlyContinue
-            if ($null -ne $val.$key) {
-                Remove-ItemProperty -Path $regPath -Name $key -Force -ErrorAction SilentlyContinue
-                Write-Host "Removed blocking policy: $key" -ForegroundColor Green
-                $changed = $true
+    foreach ($regPath in $regPaths) {
+        if (Test-Path $regPath) {
+            foreach ($key in $keysToRemove) {
+                $val = Get-ItemProperty -Path $regPath -Name $key -ErrorAction SilentlyContinue
+                if ($null -ne $val.$key) {
+                    Remove-ItemProperty -Path $regPath -Name $key -Force -ErrorAction SilentlyContinue
+                    Write-Host "Removed blocking policy: $key from $regPath" -ForegroundColor Green
+                    $changed = $true
+                }
             }
         }
     }
@@ -251,8 +256,22 @@ function Force-Windows11Upgrade {
         Write-Host "No blocking policies were found." -ForegroundColor Yellow
     }
     
-    Write-Host "Opening Windows Update settings. Please click 'Check for updates' to get the Windows 11 prompt." -ForegroundColor Cyan
-    Start-Process "ms-settings:windowsupdate-action"
+    $choice = Read-MenuChoice "Do you want to FORCE the upgrade now by downloading the Windows 11 Installation Assistant? (Y/N)"
+    if ($choice -match "^[Yy]") {
+        Write-Host "Downloading Windows 11 Installation Assistant..." -ForegroundColor Cyan
+        $installerPath = "$env:TEMP\Windows11InstallationAssistant.exe"
+        $url = "https://go.microsoft.com/fwlink/?linkid=2171764"
+        try {
+            Invoke-WebRequest -Uri $url -OutFile $installerPath
+            Write-Host "Download complete. Launching the Assistant..." -ForegroundColor Green
+            Start-Process -FilePath $installerPath
+        } catch {
+            Write-Host "Failed to download the assistant: $_" -ForegroundColor Red
+        }
+    } else {
+        Write-Host "Opening Windows Update settings. Please click 'Check for updates' to get the Windows 11 prompt." -ForegroundColor Cyan
+        Start-Process "ms-settings:windowsupdate-action"
+    }
     Pause
 }
 
