@@ -7,6 +7,8 @@
 - Toggle BitLocker on selected drives.
 - Toggle Volume Write Protection (Read-Only) using diskpart (prevents locking system volumes).
 - Reboot directly to UEFI/BIOS firmware settings.
+- Check Windows License using winlic.
+- Force/Restore Windows 11 Upgrade Prompt (Removes blocking policies, applies AveYo's WMI hardware bypass for unsupported CPU/TPM, and runs Windows 11 Installation Assistant).
 
 ## Quick Installation Guide
 
