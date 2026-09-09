@@ -256,6 +256,20 @@ function Force-Windows11Upgrade {
         Write-Host "No blocking policies were found." -ForegroundColor Yellow
     }
     
+    Write-Host "`nApplying Windows 11 Hardware Bypass (TPM/CPU/SecureBoot)..." -ForegroundColor Cyan
+    $moSetupPath = "HKLM:\SYSTEM\Setup\MoSetup"
+    if (-not (Test-Path $moSetupPath)) { New-Item -Path $moSetupPath -Force | Out-Null }
+    Set-ItemProperty -Path $moSetupPath -Name "AllowUpgradesWithUnsupportedTPMOrCPU" -Value 1 -Type DWord -Force
+    
+    $labConfigPath = "HKLM:\SYSTEM\Setup\LabConfig"
+    if (-not (Test-Path $labConfigPath)) { New-Item -Path $labConfigPath -Force | Out-Null }
+    Set-ItemProperty -Path $labConfigPath -Name "BypassTPMCheck" -Value 1 -Type DWord -Force
+    Set-ItemProperty -Path $labConfigPath -Name "BypassSecureBootCheck" -Value 1 -Type DWord -Force
+    Set-ItemProperty -Path $labConfigPath -Name "BypassCPUCheck" -Value 1 -Type DWord -Force
+    Set-ItemProperty -Path $labConfigPath -Name "BypassRAMCheck" -Value 1 -Type DWord -Force
+    Set-ItemProperty -Path $labConfigPath -Name "BypassStorageCheck" -Value 1 -Type DWord -Force
+    Write-Host "Hardware checks bypassed!" -ForegroundColor Green
+
     $choice = Read-MenuChoice "Do you want to FORCE the upgrade now by downloading the Windows 11 Installation Assistant? (Y/N)"
     if ($choice -match "^[Yy]") {
         Write-Host "Downloading Windows 11 Installation Assistant..." -ForegroundColor Cyan
