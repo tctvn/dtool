@@ -277,6 +277,12 @@ function Force-Windows11Upgrade {
         $url = "https://go.microsoft.com/fwlink/?linkid=2171764"
         try {
             Invoke-WebRequest -Uri $url -OutFile $installerPath
+            
+            Write-Host "Applying Windows 7 Compatibility mode to bypass Installation Assistant checks..." -ForegroundColor Yellow
+            $appCompatPath = "HKCU:\Software\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers"
+            if (-not (Test-Path $appCompatPath)) { New-Item -Path $appCompatPath -Force | Out-Null }
+            Set-ItemProperty -Path $appCompatPath -Name $installerPath -Value "~ WIN7RTM" -Force
+            
             Write-Host "Download complete. Launching the Assistant..." -ForegroundColor Green
             Start-Process -FilePath $installerPath
         } catch {
