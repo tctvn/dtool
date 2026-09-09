@@ -256,19 +256,19 @@ function Force-Windows11Upgrade {
         Write-Host "No blocking policies were found." -ForegroundColor Yellow
     }
     
-    Write-Host "`nApplying Windows 11 Hardware Bypass (TPM/CPU/SecureBoot)..." -ForegroundColor Cyan
-    $moSetupPath = "HKLM:\SYSTEM\Setup\MoSetup"
-    if (-not (Test-Path $moSetupPath)) { New-Item -Path $moSetupPath -Force | Out-Null }
-    Set-ItemProperty -Path $moSetupPath -Name "AllowUpgradesWithUnsupportedTPMOrCPU" -Value 1 -Type DWord -Force
-    
-    $labConfigPath = "HKLM:\SYSTEM\Setup\LabConfig"
-    if (-not (Test-Path $labConfigPath)) { New-Item -Path $labConfigPath -Force | Out-Null }
-    Set-ItemProperty -Path $labConfigPath -Name "BypassTPMCheck" -Value 1 -Type DWord -Force
-    Set-ItemProperty -Path $labConfigPath -Name "BypassSecureBootCheck" -Value 1 -Type DWord -Force
-    Set-ItemProperty -Path $labConfigPath -Name "BypassCPUCheck" -Value 1 -Type DWord -Force
-    Set-ItemProperty -Path $labConfigPath -Name "BypassRAMCheck" -Value 1 -Type DWord -Force
-    Set-ItemProperty -Path $labConfigPath -Name "BypassStorageCheck" -Value 1 -Type DWord -Force
-    Write-Host "Hardware checks bypassed!" -ForegroundColor Green
+    Write-Host "`nApplying Ultimate Windows 11 Hardware Bypass (AveYo's Bypass)..." -ForegroundColor Cyan
+    Write-Host "This will install a WMI event to automatically bypass CPU and TPM checks during the upgrade." -ForegroundColor Yellow
+    $bypassScript = "$env:TEMP\Skip_TPM_Check_on_Dynamic_Update.cmd"
+    $bypassUrl = "https://raw.githubusercontent.com/AveYo/MediaCreationTool.bat/main/bypass11/Skip_TPM_Check_on_Dynamic_Update.cmd"
+    try {
+        Invoke-WebRequest -Uri $bypassUrl -OutFile $bypassScript
+        Write-Host "Running bypass script..." -ForegroundColor Green
+        # Run it silently
+        Start-Process -FilePath "cmd.exe" -ArgumentList "/c `"$bypassScript`"" -Wait -NoNewWindow
+        Write-Host "Hardware checks bypassed successfully!" -ForegroundColor Green
+    } catch {
+        Write-Host "Failed to apply AveYo's bypass: $_" -ForegroundColor Red
+    }
 
     $choice = Read-MenuChoice "Do you want to FORCE the upgrade now by downloading the Windows 11 Installation Assistant? (Y/N)"
     if ($choice -match "^[Yy]") {
