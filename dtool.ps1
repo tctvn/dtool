@@ -226,6 +226,36 @@ function Check-WindowsLicense {
     }
 }
 
+function Force-Windows11Upgrade {
+    Write-Host "`n--- Force/Restore Windows 11 Upgrade Prompt ---" -ForegroundColor Cyan
+    Write-Host "This will remove any policies that might be blocking the Windows 11 upgrade..."
+    
+    $regPath = "HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate"
+    $changed = $false
+    
+    if (Test-Path $regPath) {
+        $keysToRemove = @("TargetReleaseVersion", "TargetReleaseVersionInfo", "ProductVersion", "DisableOSUpgrade")
+        foreach ($key in $keysToRemove) {
+            $val = Get-ItemProperty -Path $regPath -Name $key -ErrorAction SilentlyContinue
+            if ($null -ne $val.$key) {
+                Remove-ItemProperty -Path $regPath -Name $key -Force -ErrorAction SilentlyContinue
+                Write-Host "Removed blocking policy: $key" -ForegroundColor Green
+                $changed = $true
+            }
+        }
+    }
+    
+    if ($changed) {
+        Write-Host "Blocking policies have been removed." -ForegroundColor Green
+    } else {
+        Write-Host "No blocking policies were found." -ForegroundColor Yellow
+    }
+    
+    Write-Host "Opening Windows Update settings. Please click 'Check for updates' to get the Windows 11 prompt." -ForegroundColor Cyan
+    Start-Process "ms-settings:windowsupdate-action"
+    Pause
+}
+
 function Show-Menu {
     while ($true) {
         Clear-Host
@@ -237,7 +267,8 @@ function Show-Menu {
         Write-Host "3. Toggle Volume Write Protection (diskpart)"
         Write-Host "4. Reboot Options..."
         Write-Host "5. Check Windows License (winlic)"
-        Write-Host "6. Exit"
+        Write-Host "6. Force/Restore Windows 11 Upgrade Prompt"
+        Write-Host "7. Exit"
         Write-Host "========================" -ForegroundColor Cyan
         
         $choice = Read-MenuChoice "Select an option"
@@ -248,7 +279,8 @@ function Show-Menu {
             '3' { Toggle-VolumeWriteProtection }
             '4' { Show-RebootMenu }
             '5' { Check-WindowsLicense }
-            '6' { Write-Host "Exiting..."; exit }
+            '6' { Force-Windows11Upgrade }
+            '7' { Write-Host "Exiting..."; exit }
             default { Write-Host "Invalid option. Please try again." -ForegroundColor Red; Start-Sleep -Seconds 1 }
         }
     }
